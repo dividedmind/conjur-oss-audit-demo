@@ -8,14 +8,25 @@ services:
     command: server
     environment:
       DATABASE_URL: postgres://postgres@database/postgres
-      CONJUR_DATA_KEY:
-    depends_on: [ database ]
+      # demokeydemokeydemokeydemokeydemo
+      CONJUR_DATA_KEY: ZGVtb2tleWRlbW9rZXlkZW1va2V5ZGVtb2tleWRlbW8=
+      RAILS_ENV: example
+    volumes_from: [ syslog ]
+    volumes:
+      - ./environment.rb:/opt/conjur-server/config/environments/example.rb:ro
+    depends_on: [ database, syslog ]
     ports:
       - "8080:80"
 
+  syslog:
+    image: balabit/syslog-ng
+    volumes:
+      - /run/syslog
+      - ./syslog-ng.conf:/etc/syslog-ng/syslog-ng.conf:ro
+      - ./audit.log:/var/log/audit.log:rw
+
   client:
     image: conjurinc/cli5
-    depends_on: [ conjur ]
     entrypoint: sleep
     command: infinity
     environment:
